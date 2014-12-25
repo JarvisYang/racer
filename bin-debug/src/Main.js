@@ -90,9 +90,9 @@ var Main = (function (_super) {
         this.addChild(this.startScene);
     };
     Main.prototype.gameSceneSwitchFromStart = function (event) {
-        console.log("touch");
         this.removeChild(this.startScene);
         this.addChild(this.gameScene);
+        this.gameScene.gameStart();
     };
     return Main;
 })(egret.DisplayObjectContainer);

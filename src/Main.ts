@@ -101,9 +101,9 @@ class Main extends egret.DisplayObjectContainer{
     }
 
     private gameSceneSwitchFromStart(event:egret.TouchEvent){
-        console.log("touch")
         this.removeChild(this.startScene);
         this.addChild(this.gameScene);
+        this.gameScene.gameStart();
     }
 }
 
