@@ -17,6 +17,7 @@ var StartScene = (function (_super) {
         this.startBtn.y = 490;
         this.startBtn.anchorX = 0.5;
         this.startBtn.anchorY = 0.5;
+        this.startBtn.touchEnabled = true;
         this.introduce = new egret.Bitmap();
         this.introduce.texture = RES.getRes("introduce");
         this.introduce.x = 350;

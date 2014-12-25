@@ -4,11 +4,16 @@
 		{"name":"startBg","type":"image","url":"assets/startBg.jpg"},
 		{"name":"startBtn","type":"image","url":"assets/startBut.png"},
 	  	{"name":"introduce","type":"image","url":"assets/introduce.png"},
+	  	{"name":"car","type":"image","url":"assets/car.png"},
+	  	{"name":"gameScoreIcon","type":"image","url":"assets/gameScoreIcon.png"},
+	  	{"name":"gameStartBar","type":"image","url":"assets/gameStartBar.jpg"},
+	  	{"name":"gameBg","type":"image","url":"assets/gameBg.jpg"},
+	  	{"name":"blockBg","type":"image","url":"assets/block.jpg"},
         {"name":"description","type":"json","url":"config/description.json"}
 	],
 
 "groups":
 	[
-        {"name":"preload","keys":"startBg,startBtn,introduce"}
+        {"name":"preload","keys":"startBg,startBtn,introduce,car,gameScoreIcon,gameStartBar,gameBg,blockBg"}
 	]
 }

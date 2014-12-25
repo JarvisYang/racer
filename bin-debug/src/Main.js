@@ -54,17 +54,6 @@ var Main = (function (_super) {
         RES.loadGroup("preload");
     };
     /**
-     * preload资源组加载完成
-     */
-    Main.prototype.onResourceLoadComplete = function (event) {
-        if (event.groupName == "preload") {
-            this.stage.removeChild(this.loadingView);
-            RES.removeEventListener(RES.ResourceEvent.GROUP_COMPLETE, this.onResourceLoadComplete, this);
-            RES.removeEventListener(RES.ResourceEvent.GROUP_PROGRESS, this.onResourceProgress, this);
-            this.createStartScene();
-        }
-    };
-    /**
      * preload资源组加载进度
      */
     Main.prototype.onResourceProgress = function (event) {
@@ -72,9 +61,38 @@ var Main = (function (_super) {
             this.loadingView.setProgress(event.itemsLoaded, event.itemsTotal);
         }
     };
+    /**
+     * preload资源组加载完成
+     */
+    Main.prototype.onResourceLoadComplete = function (event) {
+        if (event.groupName == "preload") {
+            this.stage.removeChild(this.loadingView);
+            RES.removeEventListener(RES.ResourceEvent.GROUP_COMPLETE, this.onResourceLoadComplete, this);
+            RES.removeEventListener(RES.ResourceEvent.GROUP_PROGRESS, this.onResourceProgress, this);
+            this.init();
+        }
+    };
+    /**
+     * init all scenes of this game
+     */
+    Main.prototype.init = function () {
+        this.startScene = new StartScene();
+        this.gameScene = new GameScene();
+        this.createStartScene();
+        this.startScene.startBtn.addEventListener(egret.TouchEvent.TOUCH_TAP, this.gameSceneSwitchFromStart, this);
+        //this.addEventListener(egret.TouchEvent.TOUCH_END,this.gameSceneSwitchFromStart,this.startScene.startBtn);
+    };
+    /**
+     * init startScene add add into the stage
+     */
     Main.prototype.createStartScene = function () {
-        var startScene = new StartScene();
-        this.addChild(startScene);
+        //this.startScene = new StartScene();
+        this.addChild(this.startScene);
+    };
+    Main.prototype.gameSceneSwitchFromStart = function (event) {
+        console.log("touch");
+        this.removeChild(this.startScene);
+        this.addChild(this.gameScene);
     };
     return Main;
 })(egret.DisplayObjectContainer);
