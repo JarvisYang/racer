@@ -7,14 +7,16 @@ class GameScene extends egret.DisplayObjectContainer{
     private carStopPos:number;
     private blockRmPos:number;
     private blockHeight:number;
-    public movingFirstNum:any;
-    public movingLastNum:any;
-    public stopFirstNum:any;
-    public stopLastNum:any;
-    public stopBlocksNum:any;
-    public stopMoveSpeed:any;
+    public dynamicFirstNum:any;
+    public dynamicLastNum:any;
+    public staticFirstNum:any;
+    public staticLastNum:any;
+    public staticBlocksNum:any;
+    public staticMoveSpeed:any;
     public combineBlockNum:any;
-    public moveBlockSpeed:any;
+    public blockWithCarNum:any;
+    public roadWidth:number;
+    public dynamicBlockSpeed:any;
     public blocksNum:any;
     public trueRoad:any;
     public trueBlocks;
@@ -22,6 +24,8 @@ class GameScene extends egret.DisplayObjectContainer{
     public gameTimer:egret.Timer;
     public carMoveTimer:egret.Timer;
     public blockLeavePos:number[];
+    public roadPoint:number[];
+    public carRotationDegree:any;
 
     public constructor(){
         super();
@@ -29,9 +33,10 @@ class GameScene extends egret.DisplayObjectContainer{
         this.width = 500;
         this.height = 800;
         this.startbarHeight = 72;
-        this.stopMoveSpeed = 2;
-        this.moveBlockSpeed = 200;
+        this.staticMoveSpeed = 2;
+        this.dynamicBlockSpeed = 200;
         this.combineBlockNum = -1;
+        this.roadWidth = 5;
 
         this.bg = new egret.Bitmap();
         this.bg.texture = RES.getRes("gameBg");
@@ -62,6 +67,9 @@ class GameScene extends egret.DisplayObjectContainer{
         this.addChild(this.bottom);
         this.init();
         this.addChild(this.car);
+
+        this.createRoadPoint();
+        this.createCarRotationDegree();
     }
 
     private init(){
@@ -69,7 +77,7 @@ class GameScene extends egret.DisplayObjectContainer{
         var x = [];
         var trueBlock = 0;
         this.trueBlocks = [];
-        this.stopBlocksNum = [0,0,0,0];
+        this.staticBlocksNum = [0,0,0,0];
         //init the first block
         block.push(new floatBlock(true,250,800 - this.startbarHeight,0,0,2,2,true));
         block.push(new floatBlock(false,250,800 - this.startbarHeight,0,1,2,2,true));
@@ -142,11 +150,12 @@ class GameScene extends egret.DisplayObjectContainer{
         this.addChild(block[0]);
         this.addChild(block[1]);
 
-        this.movingFirstNum = 1;
-        this.movingLastNum = 2;
-        this.stopFirstNum = 0;
-        this.stopLastNum = 0;
+        this.dynamicFirstNum = 1;
+        this.dynamicLastNum = 2;
+        this.staticFirstNum = 0;
+        this.staticLastNum = 0;
         this.blocksNum = 3;
+        this.blockWithCarNum = this.staticFirstNum;
 
         for(var i = 0;i < this.blocks.length; i++){
             this.blocks[i][0].addEventListener(BlockTouchEvent.EVENT,this.blockCombine,this);
@@ -155,12 +164,35 @@ class GameScene extends egret.DisplayObjectContainer{
 
     }
 
+    private createRoadPoint(){
+        this.roadPoint = [];
+        var disBetweenBorder = 5;
+        this.roadWidth = (this.blockHeight - disBetweenBorder*2)/5;
+        var startPoint = (this.width - this.blockHeight)/2 + disBetweenBorder + this.roadWidth/2;
+
+        for(var i = 0;i < 5;i++){
+            this.roadPoint.push(startPoint + i*this.roadWidth);
+        }
+    }
+
+    private createCarRotationDegree(){
+        this.carRotationDegree = {};
+        this.carRotationDegree['0'] = 0;
+        var disBetweenBorder = 5;
+        for(var i = 1;i < 5;i++){
+            var degree = Math.atan((this.roadWidth * i/this.blockHeight))*180/Math.PI;
+            console.log(i,degree);
+            this.carRotationDegree[i + ''] = degree;
+            this.carRotationDegree['-' + i + ''] = -1 * degree;
+        }
+    }
+
     private blockCombine(event:BlockTouchEvent){
         var id = event.target.id;
-        if(id == this.movingFirstNum){
-            this.stopLastNum = this.movingFirstNum;
-            this.movingFirstNum = this.movingFirstNum != this.movingLastNum?
-                this.getNextBlockNum(this.movingFirstNum):
+        if(id == this.dynamicFirstNum){
+            this.staticLastNum = this.dynamicFirstNum;
+            this.dynamicFirstNum = this.dynamicFirstNum != this.dynamicLastNum?
+                this.getNextBlockNum(this.dynamicFirstNum):
                 -1;
             var dir = event.target.dir;
             var block = this.blocks[id][dir];
@@ -169,7 +201,7 @@ class GameScene extends egret.DisplayObjectContainer{
             egret.Tween.removeTweens(anotherBlock);
             egret.Tween.get(anotherBlock).to({x:this.blockLeavePos[dir],y:anotherBlock.y + 100},400,egret.Ease.sineIn);
             egret.Tween.removeTweens(block);
-            this.stopBlocksNum[id] = dir;
+            this.staticBlocksNum[id] = dir;
             egret.Tween.get(block).to({x:250},200,egret.Ease.sineInOut);
             block.touchEnabled = false;
         }
@@ -196,7 +228,7 @@ class GameScene extends egret.DisplayObjectContainer{
         }
         else{
             if(this.bottom.y <= this.height + this.startbarHeight){
-                this.bottom.y += this.stopMoveSpeed;
+                this.bottom.y += this.staticMoveSpeed;
             }
             else{
                 this.carMoveTimer.stop();
@@ -207,19 +239,20 @@ class GameScene extends egret.DisplayObjectContainer{
 
 
     private run(){
-        /**
-         *stop blocks move
-         */
-        var num = this.stopFirstNum;
-        this.blocks[num][this.stopBlocksNum[num]].y += this.stopMoveSpeed;
+        this.staticBlockMove();
+        this.dynamicBlockMove();
+    }
+
+    private staticBlockMove(){
+        var num = this.staticFirstNum;
+        this.blocks[num][this.staticBlocksNum[num]].y += this.staticMoveSpeed;
         num = this.getNextBlockNum(num);
-        var stopNum = this.getNextBlockNum(this.stopLastNum);
+        var stopNum = this.getNextBlockNum(this.staticLastNum);
         while(num != stopNum){
-            var block = this.blocks[num][this.stopBlocksNum[num]];
+            var block = this.blocks[num][this.staticBlocksNum[num]];
             var forwardBlockNum = this.getForwardBlockNum(num);
-            var forwardBlock = this.blocks[forwardBlockNum][this.stopBlocksNum[forwardBlockNum]];
-            var moveDis = (forwardBlock.y + this.blockHeight - block.y)/40;
-            console.log(moveDis);
+            var forwardBlock = this.blocks[forwardBlockNum][this.staticBlocksNum[forwardBlockNum]];
+            var moveDis = (forwardBlock.y + this.blockHeight - block.y + 40)/20;
             if(block.y + moveDis + this.blockHeight > forwardBlock.y){
                 block.y = forwardBlock.y - this.blockHeight;
             }
@@ -228,41 +261,83 @@ class GameScene extends egret.DisplayObjectContainer{
             }
             num = this.getNextBlockNum(num);
         }
-        var lastStopBlock = this.blocks[this.stopLastNum][this.stopBlocksNum[this.stopLastNum]];
+        var lastStopBlock = this.blocks[this.staticLastNum][this.staticBlocksNum[this.staticLastNum]];
         if(this.car.y < (lastStopBlock.y - this.blockHeight)){
             this.gameOver();
             return false;
         }
-        var firstStopBlock = this.blocks[this.stopFirstNum][this.stopBlocksNum[this.stopFirstNum]];
+
+        var firstStopBlock = this.blocks[this.staticFirstNum][this.staticBlocksNum[this.staticFirstNum]];
         if(firstStopBlock.y > this.blockRmPos){
             firstStopBlock.visible = false;
-            if(this.stopLastNum == this.stopFirstNum){
-                this.stopFirstNum = -1;
-                this.stopFirstNum = -1;
+            if(this.staticLastNum == this.staticFirstNum){
+                this.staticFirstNum = -1;
+                this.staticFirstNum = -1;
             }
             else{
-                this.stopFirstNum = this.getNextBlockNum(num);
+                this.staticFirstNum = this.getNextBlockNum(this.staticFirstNum);
             }
         }
+        this.carMoveHorizon();
+        this.updateBlockWithCarNun();
+    }
 
-        /**
-         *moving block move
-         */
-        var num = this.movingFirstNum;
-        var lastStopBlockPos = this.blocks[this.stopLastNum][this.trueBlocks[this.stopLastNum]].y - this.blockHeight;
-        var stopNum = this.getNextBlockNum(this.movingLastNum);
+    private  dynamicBlockMove(){
+        var num = this.dynamicFirstNum;
+        var lastStopBlockPos = this.blocks[this.staticLastNum][this.trueBlocks[this.staticLastNum]].y - this.blockHeight;
+        var stopNum = this.getNextBlockNum(this.dynamicLastNum);
         while(num != -1 && num != stopNum){
             var block = this.blocks[num];
-            var moveSpeed = (lastStopBlockPos - block[0].y ) / this.moveBlockSpeed;
+            var moveSpeed = (lastStopBlockPos - block[0].y ) / this.dynamicBlockSpeed;
             block[0].y += moveSpeed;
             block[1].y += moveSpeed;
             num = this.getNextBlockNum(num);
         }
+    }
 
+    private carMoveHorizon(){
+        var num = this.blockWithCarNum;
+        var block = this.blocks[num][this.staticBlocksNum[num]];
+        var carPos = block.y;
+        var topEnd = block.topNum;
+        var bottomEnd = block.bottomNum;
+
+        this.car.x = (carPos - this.carStopPos)/this.blockHeight*this.roadWidth*(topEnd - bottomEnd)   + this.roadPoint[bottomEnd];
+    }
+
+    private updateBlockWithCarNun(){
+        var blockNum = this.blockWithCarNum;
+        var nextBlockNum = this.getNextBlockNum(blockNum);
+        var block = this.blocks[blockNum][this.staticBlocksNum[blockNum]];
+
+        if((block.y - this.blockHeight) >= this.carStopPos){
+            if(blockNum == this.staticLastNum){
+                this.gameOver();
+            }
+            else if(this.blocks[nextBlockNum][this.staticBlocksNum[nextBlockNum]].y < this.carStopPos){
+                this.gameOver()
+            }
+            else{
+                this.blockWithCarNum = nextBlockNum;
+                this.changeCarRotation();
+            }
+        }
+    }
+
+    private changeCarRotation(){
+        var num = this.blockWithCarNum;
+        var block = this.blocks[num][this.staticBlocksNum[num]];
+        var roadPosTop = block.topNum;
+        var roadPosBottom = block.bottomNum;
+        var degree = this.carRotationDegree[(roadPosTop - roadPosBottom ) + ''];
+
+        egret.Tween.get(this.car).to({rotation:degree},200,egret.Ease.sineInOut);
     }
 
     public gameOver(){
         this.gameTimer.stop();
+        egret.Tween.removeAllTweens();
+        console.log("gameOver");
     }
 
     private getNextBlockNum(num){
@@ -280,8 +355,8 @@ class floatBlock extends egret.Sprite{
     private roadWidth:number;
     private disBetweenBorder:number;
     private endPoint:number[];
-    private topNum:number;
-    private bottomNum:number;
+    public topNum:number;
+    public bottomNum:number;
     private roadShape:egret.Shape;
     private absX:number;
     public id;

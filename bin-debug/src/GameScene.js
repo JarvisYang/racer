@@ -11,9 +11,10 @@ var GameScene = (function (_super) {
         this.width = 500;
         this.height = 800;
         this.startbarHeight = 72;
-        this.stopMoveSpeed = 2;
-        this.moveBlockSpeed = 200;
+        this.staticMoveSpeed = 2;
+        this.dynamicBlockSpeed = 200;
         this.combineBlockNum = -1;
+        this.roadWidth = 5;
         this.bg = new egret.Bitmap();
         this.bg.texture = RES.getRes("gameBg");
         this.blockHeight = 150;
@@ -40,13 +41,15 @@ var GameScene = (function (_super) {
         this.addChild(this.bottom);
         this.init();
         this.addChild(this.car);
+        this.createRoadPoint();
+        this.createCarRotationDegree();
     }
     GameScene.prototype.init = function () {
         var block = [];
         var x = [];
         var trueBlock = 0;
         this.trueBlocks = [];
-        this.stopBlocksNum = [0, 0, 0, 0];
+        this.staticBlocksNum = [0, 0, 0, 0];
         //init the first block
         block.push(new floatBlock(true, 250, 800 - this.startbarHeight, 0, 0, 2, 2, true));
         block.push(new floatBlock(false, 250, 800 - this.startbarHeight, 0, 1, 2, 2, true));
@@ -114,21 +117,42 @@ var GameScene = (function (_super) {
         block[1].visible = false;
         this.addChild(block[0]);
         this.addChild(block[1]);
-        this.movingFirstNum = 1;
-        this.movingLastNum = 2;
-        this.stopFirstNum = 0;
-        this.stopLastNum = 0;
+        this.dynamicFirstNum = 1;
+        this.dynamicLastNum = 2;
+        this.staticFirstNum = 0;
+        this.staticLastNum = 0;
         this.blocksNum = 3;
+        this.blockWithCarNum = this.staticFirstNum;
         for (var i = 0; i < this.blocks.length; i++) {
             this.blocks[i][0].addEventListener(BlockTouchEvent.EVENT, this.blockCombine, this);
             this.blocks[i][1].addEventListener(BlockTouchEvent.EVENT, this.blockCombine, this);
         }
     };
+    GameScene.prototype.createRoadPoint = function () {
+        this.roadPoint = [];
+        var disBetweenBorder = 5;
+        this.roadWidth = (this.blockHeight - disBetweenBorder * 2) / 5;
+        var startPoint = (this.width - this.blockHeight) / 2 + disBetweenBorder + this.roadWidth / 2;
+        for (var i = 0; i < 5; i++) {
+            this.roadPoint.push(startPoint + i * this.roadWidth);
+        }
+    };
+    GameScene.prototype.createCarRotationDegree = function () {
+        this.carRotationDegree = {};
+        this.carRotationDegree['0'] = 0;
+        var disBetweenBorder = 5;
+        for (var i = 1; i < 5; i++) {
+            var degree = Math.atan((this.roadWidth * i / this.blockHeight)) * 180 / Math.PI;
+            console.log(i, degree);
+            this.carRotationDegree[i + ''] = degree;
+            this.carRotationDegree['-' + i + ''] = -1 * degree;
+        }
+    };
     GameScene.prototype.blockCombine = function (event) {
         var id = event.target.id;
-        if (id == this.movingFirstNum) {
-            this.stopLastNum = this.movingFirstNum;
-            this.movingFirstNum = this.movingFirstNum != this.movingLastNum ? this.getNextBlockNum(this.movingFirstNum) : -1;
+        if (id == this.dynamicFirstNum) {
+            this.staticLastNum = this.dynamicFirstNum;
+            this.dynamicFirstNum = this.dynamicFirstNum != this.dynamicLastNum ? this.getNextBlockNum(this.dynamicFirstNum) : -1;
             var dir = event.target.dir;
             var block = this.blocks[id][dir];
             var anotherBlock = this.blocks[id][dir ? 0 : 1];
@@ -136,7 +160,7 @@ var GameScene = (function (_super) {
             egret.Tween.removeTweens(anotherBlock);
             egret.Tween.get(anotherBlock).to({ x: this.blockLeavePos[dir], y: anotherBlock.y + 100 }, 400, egret.Ease.sineIn);
             egret.Tween.removeTweens(block);
-            this.stopBlocksNum[id] = dir;
+            this.staticBlocksNum[id] = dir;
             egret.Tween.get(block).to({ x: 250 }, 200, egret.Ease.sineInOut);
             block.touchEnabled = false;
         }
@@ -160,7 +184,7 @@ var GameScene = (function (_super) {
         }
         else {
             if (this.bottom.y <= this.height + this.startbarHeight) {
-                this.bottom.y += this.stopMoveSpeed;
+                this.bottom.y += this.staticMoveSpeed;
             }
             else {
                 this.carMoveTimer.stop();
@@ -168,19 +192,19 @@ var GameScene = (function (_super) {
         }
     };
     GameScene.prototype.run = function () {
-        /**
-         *stop blocks move
-         */
-        var num = this.stopFirstNum;
-        this.blocks[num][this.stopBlocksNum[num]].y += this.stopMoveSpeed;
+        this.staticBlockMove();
+        this.dynamicBlockMove();
+    };
+    GameScene.prototype.staticBlockMove = function () {
+        var num = this.staticFirstNum;
+        this.blocks[num][this.staticBlocksNum[num]].y += this.staticMoveSpeed;
         num = this.getNextBlockNum(num);
-        var stopNum = this.getNextBlockNum(this.stopLastNum);
+        var stopNum = this.getNextBlockNum(this.staticLastNum);
         while (num != stopNum) {
-            var block = this.blocks[num][this.stopBlocksNum[num]];
+            var block = this.blocks[num][this.staticBlocksNum[num]];
             var forwardBlockNum = this.getForwardBlockNum(num);
-            var forwardBlock = this.blocks[forwardBlockNum][this.stopBlocksNum[forwardBlockNum]];
-            var moveDis = (forwardBlock.y + this.blockHeight - block.y) / 40;
-            console.log(moveDis);
+            var forwardBlock = this.blocks[forwardBlockNum][this.staticBlocksNum[forwardBlockNum]];
+            var moveDis = (forwardBlock.y + this.blockHeight - block.y + 40) / 20;
             if (block.y + moveDis + this.blockHeight > forwardBlock.y) {
                 block.y = forwardBlock.y - this.blockHeight;
             }
@@ -189,38 +213,74 @@ var GameScene = (function (_super) {
             }
             num = this.getNextBlockNum(num);
         }
-        var lastStopBlock = this.blocks[this.stopLastNum][this.stopBlocksNum[this.stopLastNum]];
+        var lastStopBlock = this.blocks[this.staticLastNum][this.staticBlocksNum[this.staticLastNum]];
         if (this.car.y < (lastStopBlock.y - this.blockHeight)) {
             this.gameOver();
             return false;
         }
-        var firstStopBlock = this.blocks[this.stopFirstNum][this.stopBlocksNum[this.stopFirstNum]];
+        var firstStopBlock = this.blocks[this.staticFirstNum][this.staticBlocksNum[this.staticFirstNum]];
         if (firstStopBlock.y > this.blockRmPos) {
             firstStopBlock.visible = false;
-            if (this.stopLastNum == this.stopFirstNum) {
-                this.stopFirstNum = -1;
-                this.stopFirstNum = -1;
+            if (this.staticLastNum == this.staticFirstNum) {
+                this.staticFirstNum = -1;
+                this.staticFirstNum = -1;
             }
             else {
-                this.stopFirstNum = this.getNextBlockNum(num);
+                this.staticFirstNum = this.getNextBlockNum(this.staticFirstNum);
             }
         }
-        /**
-         *moving block move
-         */
-        var num = this.movingFirstNum;
-        var lastStopBlockPos = this.blocks[this.stopLastNum][this.trueBlocks[this.stopLastNum]].y - this.blockHeight;
-        var stopNum = this.getNextBlockNum(this.movingLastNum);
+        this.carMoveHorizon();
+        this.updateBlockWithCarNun();
+    };
+    GameScene.prototype.dynamicBlockMove = function () {
+        var num = this.dynamicFirstNum;
+        var lastStopBlockPos = this.blocks[this.staticLastNum][this.trueBlocks[this.staticLastNum]].y - this.blockHeight;
+        var stopNum = this.getNextBlockNum(this.dynamicLastNum);
         while (num != -1 && num != stopNum) {
             var block = this.blocks[num];
-            var moveSpeed = (lastStopBlockPos - block[0].y) / this.moveBlockSpeed;
+            var moveSpeed = (lastStopBlockPos - block[0].y) / this.dynamicBlockSpeed;
             block[0].y += moveSpeed;
             block[1].y += moveSpeed;
             num = this.getNextBlockNum(num);
         }
     };
+    GameScene.prototype.carMoveHorizon = function () {
+        var num = this.blockWithCarNum;
+        var block = this.blocks[num][this.staticBlocksNum[num]];
+        var carPos = block.y;
+        var topEnd = block.topNum;
+        var bottomEnd = block.bottomNum;
+        this.car.x = (carPos - this.carStopPos) / this.blockHeight * this.roadWidth * (topEnd - bottomEnd) + this.roadPoint[bottomEnd];
+    };
+    GameScene.prototype.updateBlockWithCarNun = function () {
+        var blockNum = this.blockWithCarNum;
+        var nextBlockNum = this.getNextBlockNum(blockNum);
+        var block = this.blocks[blockNum][this.staticBlocksNum[blockNum]];
+        if ((block.y - this.blockHeight) >= this.carStopPos) {
+            if (blockNum == this.staticLastNum) {
+                this.gameOver();
+            }
+            else if (this.blocks[nextBlockNum][this.staticBlocksNum[nextBlockNum]].y < this.carStopPos) {
+                this.gameOver();
+            }
+            else {
+                this.blockWithCarNum = nextBlockNum;
+                this.changeCarRotation();
+            }
+        }
+    };
+    GameScene.prototype.changeCarRotation = function () {
+        var num = this.blockWithCarNum;
+        var block = this.blocks[num][this.staticBlocksNum[num]];
+        var roadPosTop = block.topNum;
+        var roadPosBottom = block.bottomNum;
+        var degree = this.carRotationDegree[(roadPosTop - roadPosBottom) + ''];
+        egret.Tween.get(this.car).to({ rotation: degree }, 200, egret.Ease.sineInOut);
+    };
     GameScene.prototype.gameOver = function () {
         this.gameTimer.stop();
+        egret.Tween.removeAllTweens();
+        console.log("gameOver");
     };
     GameScene.prototype.getNextBlockNum = function (num) {
         return num == this.blocksNum ? 0 : num + 1;
