@@ -2,9 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="c1fa5dea-e4d3-48c7-b9af-3537991a8aab" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/bin-debug/src/GameScene.js" afterPath="$PROJECT_DIR$/bin-debug/src/GameScene.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/GameScene.ts" afterPath="$PROJECT_DIR$/src/GameScene.ts" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="racer.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -43,7 +41,7 @@
           <file leaf-file-name="StartScene.ts" pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/src/StartScene.ts">
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.104477614" vertical-offset="0" max-vertical-offset="1005">
+                <state vertical-scroll-proportion="0.106924646" vertical-offset="0" max-vertical-offset="982">
                   <caret line="7" column="0" selection-start-line="7" selection-start-column="0" selection-end-line="7" selection-end-column="0" />
                   <folding />
                 </state>
@@ -67,8 +65,8 @@
           <file leaf-file-name="GameScene.ts" pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/src/GameScene.ts">
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.17910448" vertical-offset="2310" max-vertical-offset="6510">
-                  <caret line="166" column="27" selection-start-line="166" selection-start-column="27" selection-end-line="166" selection-end-column="27" />
+                <state vertical-scroll-proportion="0.35132384" vertical-offset="2310" max-vertical-offset="6525">
+                  <caret line="177" column="0" selection-start-line="177" selection-start-column="0" selection-end-line="177" selection-end-column="0" />
                   <folding />
                 </state>
               </provider>
@@ -695,7 +693,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/StartScene.ts">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.104477614" vertical-offset="0" max-vertical-offset="1005">
+        <state vertical-scroll-proportion="0.106924646" vertical-offset="0" max-vertical-offset="982">
           <caret line="7" column="0" selection-start-line="7" selection-start-column="0" selection-end-line="7" selection-end-column="0" />
           <folding />
         </state>
@@ -711,8 +709,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/GameScene.ts">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.17910448" vertical-offset="2310" max-vertical-offset="6510">
-          <caret line="166" column="27" selection-start-line="166" selection-start-column="27" selection-end-line="166" selection-end-column="27" />
+        <state vertical-scroll-proportion="0.35132384" vertical-offset="2310" max-vertical-offset="6525">
+          <caret line="177" column="0" selection-start-line="177" selection-start-column="0" selection-end-line="177" selection-end-column="0" />
           <folding />
         </state>
       </provider>

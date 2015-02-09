@@ -175,6 +175,7 @@ class GameScene extends egret.DisplayObjectContainer{
         }
     }
 
+
     private createCarRotationDegree(){
         this.carRotationDegree = {};
         this.carRotationDegree['0'] = 0;
